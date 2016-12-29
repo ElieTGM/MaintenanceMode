@@ -31,12 +31,17 @@
  */
 package net.mm.bukkit;
 
+import net.mm.MaintenanceBukkit;
+import net.mm.bukkit.main.BukkitLoader;
+
 import java.util.logging.Level;
 
-import net.mm.MaintenanceBukkit;
-
 public class BukkitExtension {
-	
+
+	// pLGlobal and TAPIGlobal are PERMANENT booleans used on starts for API Usage purposes.
+	public static boolean pLGlobal = true;
+	public static boolean TAPIGlobal = true;
+
 	// Let's get an instance of MaintenanceBukkit then initialize it in BukkitExtension();
 	MaintenanceBukkit mb;
 	
@@ -57,16 +62,62 @@ public class BukkitExtension {
 	 * This method searches for soft-depends and depends for MaintenanceMode. If not available, <b> DISABLE </b> MaintenanceMode or <b> DISABLE </b> extension.
 	 */
 	public void init() {
-		
+
+		// pL and TAPI are different from pLGlobal and TAPIGlobal. pL and TAPI are TEMPORARY booleans.
+		boolean pL = true;
+		boolean TAPI = true;
+
 		// This plugin doesn't currently depend on anything, so let's start with the soft-depends.
-		
-		// -|> ProtocolLib <|- //
+
+		// -|> ProtocolLib <|- // (Check if ProtocolLib is enabled on the server, if not send a message and do the following)
 		if(this.mb.getServer().getPluginManager().getPlugin("ProtocolLib") == null) {
 			
 			this.mb.log(Level.INFO, "ProtocolLib was not found. ProtocolLib softdepend will not be enabled.");
-			
+			pL = false;
+			pLGlobal = false;
+
 		}
-		
+
+		// -|> TGMAPI <|- // (Check if TGMAPI is enabled on the server, if not send a message and do the following)
+		if (this.mb.getServer().getPluginManager().getPlugin("TGMAPI") == null) {
+
+			this.mb.log(Level.INFO, "TGMAPI was not found. TGMAPI softdepend will not be enabled.");
+			TAPI = false;
+			TAPIGlobal = false;
+
+		}
+
+		// Let's check if pL and TGMAPI were found. Let's start off with checking if they are both enabled.
+		if (pL == true && TAPI == true) {
+
+			// Let's load the plugin since both soft-dependencies are enabled.
+			BukkitLoader bL = new BukkitLoader(this.mb);
+			bL.loadPlugin(true, true);
+
+			// Let's false both since we found them both enabled to avoid bug-exploitment.
+			pL = false;
+			TAPI = false;
+
+		}
+
+		// Let's now check if pL is enabled only.
+		if (pLGlobal == true) {
+
+			// Let's load the plugin since only ProtocolLib is enabled as soft-dependency.
+			BukkitLoader bL = new BukkitLoader(this.mb);
+			bL.loadPlugin(true, false);
+
+		}
+
+		// Let's now check if TGMAPI is enabled only.
+		if (TAPIGlobal == true) {
+
+			// Let's load the plugin since only TGMAPI is enabled as soft-dependency.
+			BukkitLoader bL = new BukkitLoader(this.mb);
+			bL.loadPlugin(false, true);
+
+		}
+
 	}
 	
 	
